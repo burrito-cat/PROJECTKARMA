@@ -1,11 +1,11 @@
 import pygame
 import os
-print("-----------------------------------")
-print(os.getcwd())
-print("-----------------------------------")
+
+RESOLUTION_X = 640
+RESOLUTION_Y = 640
 
 pygame.init()
-screen = pygame.display.set_mode((640,640))
+screen = pygame.display.set_mode((RESOLUTION_X,RESOLUTION_Y))
 clock = pygame.time.Clock()
 running = True
 
@@ -16,7 +16,7 @@ def get_path(x: str):
     #in: le chemin relatif d'une file
     #function: prends le chemin absolu du jeu et y ajoute le chemin relatif
     #out: le path absolu
-
+    #cela permet d'eviter des problemes 
     return os.path.join(game_folder, x)
 
 
@@ -24,15 +24,16 @@ def get_path(x: str):
 class Player:
     def __init__(self, x, y):
         
-
-
-        self.image = pygame.image.load(get_path('assets/tempwalkcycle_0003.png')).convert_alpha()
-        self.image = pygame.transform.scale(self.image,
+        #on initialise idleimage qui est notre cas de base. il ne sera jamais modifie.
+        # self.image sera ce qui va etre afficher, donc on le modifie.
+        self.idleimage = pygame.image.load(get_path('assets/tempwalkcycle_0003.png')).convert_alpha()
+        self.image = self.idleimage
+        self.idleimage = pygame.transform.scale(self.image,
             (self.image.get_width() * 4,
             self.image.get_height() * 4)
         )
         self.rect = pygame.Rect(x, y, 100, 50)
-        self.color = ((100, 0, 100))
+
         self.speed = 3
 
         #on charge toutes les frames de l'anim walkcycle et on les resize pour pas qu'on reset la taille a chaque fois. 
@@ -81,9 +82,14 @@ class Player:
         
 
         #Animation
+        # Pour eviter qu'on change de sprite de la walk cycle tout les frames, j'ai ajoute
+        # un compteur (frame_state) qui, quand il est divisible par la rapidite voulue de l'animation
+        # (frame_speed), ensuite va a la prochaine sprite dans. donc si frame_speed = 10, on aura 
+        # 1 sprite toutes les 10 frames de mouvements.
         if is_moving:
             self.frame_state += 1
             if self.frame_state%self.frame_speed == 0:
+                self.frame_state = 0
                 self.current_frame += 1
                 if self.current_frame >= len(self.frames):
                     self.current_frame = 0
@@ -95,6 +101,10 @@ class Player:
                     self.image = pygame.transform.flip(self.frames[self.current_frame], True, False)
                 else:
                     self.image = self.frames[self.current_frame]
+        #si on bouge pas on met l'etat idle.
+        else:
+
+            self.image = self.idleimage
                     
                     
 
